@@ -1,6 +1,6 @@
 [project]
 name = "bowmark-mcp"
-version = "1.0.0"
+version = "1.0.1"
 description = "Bowmark MCP over stdio — a thin bridge to the hosted Bowmark MCP at https://api.bowmark.ai/mcp"
 readme = "README.md"
 requires-python = ">=3.10"

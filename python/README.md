@@ -86,8 +86,10 @@ EOF
 `uvx bowmark-mcp` against prod). To ship a new version: **bump `version` in
 `pyproject.toml` and merge** — `.github/workflows/publish-bowmark-mcp.yml`
 compares the manifest against live PyPI on every merge touching this folder
-and publishes only when the version is new (requires the
-`PYPI_TOKEN_BOWMARK_MCP` Actions secret). Not release-please; the bump IS the
+and publishes only when the version is new. Auth is PyPI **Trusted
+Publishing** (OIDC) — no token, configured on pypi.org (project → Publishing
+→ GitHub publisher for `Metroxe/bowmark` / `publish-bowmark-mcp.yml`); `uv
+publish` picks it up automatically. Not release-please; the bump IS the
 release action. If the registry surface changed, also bump
 `packages[0].version` in `mcp-registry/server.json` (rides the next
 api-release republish — the registry validates ownership via the `mcp-name`

@@ -64,15 +64,16 @@ injected at the `callRemote`/`buildServer` seams.
 
 ## Publishing to npm
 
-**Live since 2026-07-04** (v0.1.0, published by CI + cold-verified via
+**Live since 2026-07-04** (published by CI + cold-verified via
 `npx -y bowmark-mcp` against prod). To ship a version: **bump `version` in
 `package.json` (and the two `version` literals in `src/bridge.ts`)
 and merge** — `.github/workflows/publish-bowmark-mcp.yml` compares the
 manifest against live npm on every merge touching this folder and publishes
-only when the version is new (requires the `NPM_TOKEN_BOWMARK_MCP` Actions
-secret; token lives in the 1Password item "npm bowmark-mcp publish token" —
-90-day expiry, so consider switching the workflow to npm Trusted Publishing).
-Not release-please; the bump IS the release action.
+only when the version is new. Auth is npm **Trusted Publishing** (OIDC) —
+no token, configured on npmjs.com (package Settings → Trusted Publisher →
+GitHub Actions, repo `Metroxe/bowmark`, workflow `publish-bowmark-mcp.yml`).
+The job must run on a GitHub-hosted runner (npm's OIDC rejects self-hosted)
+with npm ≥ 11.5.1. Not release-please; the bump IS the release action.
 
 `mcp-registry/server.json` carries the matching npm `packages` entry (landed
 after the first publish per the mcp-name ordering rule), and the website
