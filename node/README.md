@@ -66,14 +66,23 @@ injected at the `callRemote`/`buildServer` seams.
 
 **Live since 2026-07-04** (published by CI + cold-verified via
 `npx -y bowmark-mcp` against prod). To ship a version: **bump `version` in
-`package.json` (and the two `version` literals in `src/bridge.ts`)
-and merge** — `.github/workflows/publish-bowmark-mcp.yml` compares the
-manifest against live npm on every merge touching this folder and publishes
-only when the version is new. Auth is npm **Trusted Publishing** (OIDC) —
-no token, configured on npmjs.com (package Settings → Trusted Publisher →
-GitHub Actions, repo `Metroxe/bowmark`, workflow `publish-bowmark-mcp.yml`).
-The job must run on a GitHub-hosted runner (npm's OIDC rejects self-hosted)
-with npm ≥ 11.5.1. Not release-please; the bump IS the release action.
+`package.json` (and the two `version` literals in `src/bridge.ts`) and
+merge.** The actual publish does NOT run in this monorepo's CI — this repo
+is private, and npm Trusted Publishing (OIDC) validates against
+`package.json`'s `repository.url`, which (correctly) points at the public
+mirror `github.com/bowmark-ai/mcp`, not `Metroxe/bowmark`. So merging here
+only lands the version bump; `release-bowmark-mcp.yml` mirror-syncs it to
+`bowmark-ai/mcp`, and THAT repo's own `.github/workflows/publish.yml`
+(source-controlled at
+[`packages/bowmark-mcp/.github/workflows/publish.yml`](../.github/workflows/publish.yml)
+in this monorepo, mirrored in like any other file) does the real `npm
+publish`. Auth is npm **Trusted Publishing** (OIDC) — no token, configured
+on npmjs.com (package Settings → Trusted Publisher → GitHub Actions, repo
+`bowmark-ai/mcp`, workflow `publish.yml`). Publishing from the public
+mirror also auto-generates provenance attestations, which npm only produces
+for public-repo publishes — impossible from this private monorepo
+regardless of `repository.url`. Not release-please; the bump IS the release
+action.
 
 `mcp-registry/server.json` carries the matching npm `packages` entry (landed
 after the first publish per the mcp-name ordering rule), and the website

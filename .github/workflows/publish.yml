@@ -1,0 +1,129 @@
+name: publish
+
+# Publishes the stdio bridges to PyPI (python/) and npm (node/) whenever the
+# monorepo mirror-sync lands a new manifest version.
+#
+# This file lives at packages/bowmark-mcp/.github/workflows/publish.yml in
+# Metroxe/bowmark (inert there — GitHub only runs repo-root workflows) and
+# rides the existing mirror sync (release-bowmark-mcp.yml's
+# `cp -R monorepo/packages/bowmark-mcp/. mirror/`) into
+# github.com/bowmark-ai/mcp, where it becomes a real, live workflow at
+# .github/workflows/publish.yml and fires on the sync's push to main.
+#
+# Publishing runs HERE, not in the monorepo, on purpose: npm/PyPI Trusted
+# Publishing (OIDC) validates against package.json's `repository.url` /
+# pyproject.toml's `Repository` URL, and those point at this public mirror
+# (the private monorepo would fail that check). Publishing from a public
+# repo also auto-generates provenance attestations — impossible from the
+# private monorepo regardless of `repository.url`, since npm/PyPI both gate
+# provenance on the source repo being public.
+#
+# Versioning stays manual and lives upstream: bumping pyproject.toml /
+# package.json in the monorepo IS the release action; this workflow just
+# executes it once the bump reaches here. Each job diffs the manifest
+# version against the LIVE registry, so a sync that didn't bump a version
+# (or a re-run) is a green no-op — never re-publishes an existing version.
+#
+# Auth: OIDC Trusted Publishing on both registries, configured to trust
+# THIS repo + workflow (pypi.org / npmjs.com → Publishing → GitHub →
+# owner bowmark-ai, repo mcp, workflow publish.yml). No token secrets.
+# Runs on GitHub-hosted runners — free/unmetered on a public repo, and
+# npm's OIDC rejects self-hosted runners regardless.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Decide whether to publish
+        id: decide
+        run: |
+          set -euo pipefail
+          LOCAL=$(grep -m1 '^version' pyproject.toml | sed 's/.*"\(.*\)"/\1/')
+          LIVE=$(curl -s https://pypi.org/pypi/bowmark-mcp/json | python3 -c 'import json,sys; print(json.load(sys.stdin)["info"]["version"])' 2>/dev/null || echo "none")
+          echo "local=$LOCAL live=$LIVE"
+          if [ "$LOCAL" = "$LIVE" ]; then
+            echo "Version $LOCAL already on PyPI — nothing to publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and publish to PyPI
+        if: steps.decide.outputs.publish == 'true'
+        run: |
+          set -euo pipefail
+          command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          rm -rf dist
+          uv build
+          # No token: uv exchanges the job's GitHub OIDC token with PyPI
+          # (trusted publishing, detected automatically in GitHub Actions).
+          uv publish
+
+  npm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: node
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Decide whether to publish
+        id: decide
+        run: |
+          set -euo pipefail
+          LOCAL=$(node -p "require('./package.json').version")
+          LIVE=$(npm view bowmark-mcp version 2>/dev/null || echo "none")
+          echo "local=$LOCAL live=$LIVE"
+          if [ "$LOCAL" = "$LIVE" ]; then
+            echo "Version $LOCAL already on npm — nothing to publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # No lockfile ships in this standalone mirror (the monorepo resolves
+      # this package's deps via the pnpm workspace root lockfile instead),
+      # so a plain install is the correct move here, not `npm ci`.
+      - name: Install
+        if: steps.decide.outputs.publish == 'true'
+        run: |
+          set -euo pipefail
+          # Trusted publishing needs npm >= 11.5.1; Node 22 bundles npm 10.
+          npm install -g npm
+          npm install
+
+      - name: Publish to npm
+        if: steps.decide.outputs.publish == 'true'
+        run: |
+          set -euo pipefail
+          # prepublishOnly (package.json) builds via tsc before packing.
+          # No token / .npmrc: npm exchanges the job's GitHub OIDC token
+          # with the registry (trusted publishing).
+          npm publish --access public

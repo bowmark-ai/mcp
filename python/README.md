@@ -82,15 +82,22 @@ EOF
 
 ## Publishing to PyPI
 
-**Live since 2026-07-03** (v0.1.0, published + cold-verified via
-`uvx bowmark-mcp` against prod). To ship a new version: **bump `version` in
-`pyproject.toml` and merge** — `.github/workflows/publish-bowmark-mcp.yml`
-compares the manifest against live PyPI on every merge touching this folder
-and publishes only when the version is new. Auth is PyPI **Trusted
-Publishing** (OIDC) — no token, configured on pypi.org (project → Publishing
-→ GitHub publisher for `Metroxe/bowmark` / `publish-bowmark-mcp.yml`); `uv
-publish` picks it up automatically. Not release-please; the bump IS the
-release action. If the registry surface changed, also bump
+**Live since 2026-07-03**, published + cold-verified via `uvx bowmark-mcp`
+against prod. To ship a new version: **bump `version` in `pyproject.toml`
+and merge.** The actual publish does NOT run in this monorepo's CI — this
+repo is private, and PyPI Trusted Publishing (OIDC) validates against
+`pyproject.toml`'s `Repository` URL, which (correctly) points at the public
+mirror `github.com/bowmark-ai/mcp`, not `Metroxe/bowmark`. So merging here
+only lands the version bump; `release-bowmark-mcp.yml` mirror-syncs it to
+`bowmark-ai/mcp`, and THAT repo's own `.github/workflows/publish.yml`
+(source-controlled at
+[`packages/bowmark-mcp/.github/workflows/publish.yml`](../.github/workflows/publish.yml)
+in this monorepo, mirrored in like any other file) does the real `uv
+publish`. Auth is PyPI **Trusted Publishing** (OIDC) — no token, configured
+on pypi.org (project → Publishing → GitHub publisher for `bowmark-ai/mcp` /
+`publish.yml`). Publishing from the public mirror also auto-generates
+provenance attestations. Not release-please; the bump IS the release
+action. If the registry surface changed, also bump
 `packages[0].version` in `mcp-registry/server.json` (rides the next
 api-release republish — the registry validates ownership via the `mcp-name`
 marker above).
