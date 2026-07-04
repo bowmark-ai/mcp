@@ -38,14 +38,12 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   pypi:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      contents: read
-      id-token: write
     defaults:
       run:
         working-directory: python
@@ -81,9 +79,6 @@ jobs:
   npm:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      contents: read
-      id-token: write
     defaults:
       run:
         working-directory: node
