@@ -1,0 +1,43 @@
+{
+  "name": "bowmark-mcp",
+  "version": "0.1.0",
+  "description": "Bowmark MCP over stdio \u2014 a thin bridge to the hosted Bowmark MCP at https://api.bowmark.ai/mcp",
+  "license": "MIT",
+  "author": "Bowmark AI <christopher@bowmark.ai>",
+  "homepage": "https://bowmark.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bowmark-ai/bowmark-mcp.git",
+    "directory": "node"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "bowmark",
+    "browser-automation",
+    "ai-agents"
+  ],
+  "type": "module",
+  "bin": {
+    "bowmark-mcp": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "rm -rf dist && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "typescript": "~5.9.2"
+  }
+}
