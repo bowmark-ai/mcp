@@ -64,16 +64,16 @@ injected at the `callRemote`/`buildServer` seams.
 
 ## Publishing to npm
 
-To ship a version: **bump `version` in `package.json` (and the two
-`version: "0.1.0"` literals in `src/bridge.ts`) and merge** —
-`.github/workflows/publish-bowmark-mcp.yml` compares the manifest against
-live npm on every merge touching this folder and publishes only when the
-version is new (requires the `NPM_TOKEN_BOWMARK_MCP` Actions secret; token
-lives in the 1Password item "npm bowmark-mcp publish token"). Not
-release-please; the bump IS the release action.
+**Live since 2026-07-04** (v0.1.0, published by CI + cold-verified via
+`npx -y bowmark-mcp` against prod). To ship a version: **bump `version` in
+`package.json` (and the two `version: "0.1.0"` literals in `src/bridge.ts`)
+and merge** — `.github/workflows/publish-bowmark-mcp.yml` compares the
+manifest against live npm on every merge touching this folder and publishes
+only when the version is new (requires the `NPM_TOKEN_BOWMARK_MCP` Actions
+secret; token lives in the 1Password item "npm bowmark-mcp publish token" —
+90-day expiry, so consider switching the workflow to npm Trusted Publishing).
+Not release-please; the bump IS the release action.
 
-After the FIRST publish: add an npm `packages` entry to
-`mcp-registry/server.json` (same after-publish ordering rule as PyPI — the
-registry validates the `mcp-name` marker on the live npm README), and swap
-the website stdio tab's Node step from `npx mcp-remote` to
-`npx bowmark-mcp`.
+`mcp-registry/server.json` carries the matching npm `packages` entry (landed
+after the first publish per the mcp-name ordering rule), and the website
+stdio tab's Node step points at `npx bowmark-mcp`.
