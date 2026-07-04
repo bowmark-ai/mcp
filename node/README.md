@@ -49,9 +49,15 @@ If your host speaks streamable HTTP, skip this bridge and connect directly to
 - **`?s=n` source code** is registered in `apps/api/src/mcp-sources.ts` +
   `mcp-registry/sources.json` (npm stdio bridge channel; the PyPI bridge is
   `?s=p`).
-- **The `mcp-name: ai.bowmark/bowmark` line above is load-bearing**: the
-  official MCP Registry validates npm package ownership by finding that
-  marker in the package README. Don't remove it.
+- **npm ownership verification needs BOTH markers — the registry checks the
+  published package.json, not just the README.** The `mcp-name:
+  ai.bowmark/bowmark` line above and the `"mcpName": "ai.bowmark/bowmark"`
+  field in `package.json` are both load-bearing; don't remove either. Learned
+  the hard way 2026-07-04: `release-mcp.yml`'s registry republish failed for
+  five straight api releases (`server returned status 400: ... "NPM package
+  'bowmark-mcp' is missing required 'mcpName' field"`) because only the
+  README marker was present — the package.json field is what `mcp-publisher
+  publish` actually validates against the live npm package.
 - **Versioning is manual** (thin bridge, not the api): bump `package.json`
   when it changes. Not wired into release-please; `private` is deliberately
   absent so npm publish works — release-please doesn't manage this package.
