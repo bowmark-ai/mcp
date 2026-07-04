@@ -1,6 +1,6 @@
 [project]
 name = "bowmark-mcp"
-version = "0.1.0"
+version = "1.0.0"
 description = "Bowmark MCP over stdio — a thin bridge to the hosted Bowmark MCP at https://api.bowmark.ai/mcp"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -18,7 +18,7 @@ dependencies = ["mcp>=1.16,<2"]
 [project.urls]
 Homepage = "https://bowmark.ai"
 Documentation = "https://bowmark.ai/install"
-Repository = "https://github.com/bowmark-ai/bowmark-mcp"
+Repository = "https://github.com/bowmark-ai/mcp"
 
 [project.scripts]
 bowmark-mcp = "bowmark_mcp:main"

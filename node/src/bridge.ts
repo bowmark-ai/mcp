@@ -43,7 +43,7 @@ export function authHeaders(env: NodeJS.ProcessEnv = process.env): Record<string
 }
 
 async function withRemote<T>(fn: (client: Client) => Promise<T>): Promise<T> {
-  const client = new Client({ name: "bowmark-mcp-bridge", version: "0.1.0" });
+  const client = new Client({ name: "bowmark-mcp-bridge", version: "1.0.0" });
   const headers = authHeaders();
   const transport = new StreamableHTTPClientTransport(new URL(targetUrl()), {
     requestInit: headers ? { headers } : undefined,
@@ -72,7 +72,7 @@ export async function callRemote<T>(
 
 export function buildServer(remote: typeof callRemote = callRemote): Server {
   const server = new Server(
-    { name: "bowmark", version: "0.1.0" },
+    { name: "bowmark", version: "1.0.0" },
     { capabilities: { tools: {} } },
   );
   server.setRequestHandler(ListToolsRequestSchema, async () => {

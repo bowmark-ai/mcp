@@ -1,13 +1,13 @@
 {
   "name": "bowmark-mcp",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Bowmark MCP over stdio \u2014 a thin bridge to the hosted Bowmark MCP at https://api.bowmark.ai/mcp",
   "license": "MIT",
   "author": "Bowmark AI <christopher@bowmark.ai>",
   "homepage": "https://bowmark.ai",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bowmark-ai/bowmark-mcp.git",
+    "url": "git+https://github.com/bowmark-ai/mcp.git",
     "directory": "node"
   },
   "keywords": [

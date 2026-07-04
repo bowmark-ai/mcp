@@ -66,7 +66,7 @@ injected at the `callRemote`/`buildServer` seams.
 
 **Live since 2026-07-04** (v0.1.0, published by CI + cold-verified via
 `npx -y bowmark-mcp` against prod). To ship a version: **bump `version` in
-`package.json` (and the two `version: "0.1.0"` literals in `src/bridge.ts`)
+`package.json` (and the two `version` literals in `src/bridge.ts`)
 and merge** — `.github/workflows/publish-bowmark-mcp.yml` compares the
 manifest against live npm on every merge touching this folder and publishes
 only when the version is new (requires the `NPM_TOKEN_BOWMARK_MCP` Actions
