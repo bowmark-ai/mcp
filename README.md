@@ -1,8 +1,10 @@
 # bowmark-mcp — the Bowmark MCP over stdio
 
-[Bowmark](https://bowmark.ai) gives agents pre-computed navigation recipes for
-public websites (skip explore-and-discover). The canonical server is hosted,
-streamable HTTP, no auth required: `https://api.bowmark.ai/mcp`.
+[Bowmark](https://bowmark.ai) turns the interaction-gated web into a **callable
+function library**. An agent reads the library (`get_library`), writes a short
+JavaScript script against it, and sends it to `run` — Bowmark executes it on the
+live sites in a sandbox and hands back the result. The canonical server is
+hosted, streamable HTTP, no auth required: `https://api.bowmark.ai/mcp`.
 
 Some MCP hosts only speak **stdio** — browser-use, and many self-built agent
 stacks. This repo holds two thin stdio bridges to the same hosted server, one
@@ -30,8 +32,27 @@ If your host speaks streamable HTTP, skip the bridge entirely and connect to
 `https://api.bowmark.ai/mcp`.
 
 Env (both bridges): `BOWMARK_MCP_URL` (target override), `BOWMARK_API_KEY`
-(optional — raises the anonymous per-IP daily synthesis cap; free key at
+(optional — lifts the anonymous per-IP daily cap; free key at
 [bowmark.ai](https://bowmark.ai)).
+
+## 2.0.0 — the tools changed
+
+Bowmark used to return **navigation recipes** for an agent to execute, through
+`ask` and `report_outcome`. It now returns a **callable function library** and
+runs the script itself. The tools are:
+
+| Before | Now |
+|---|---|
+| `ask({ site, task })` | `get_library({ query })` — what's callable for this task |
+| `report_outcome({ … })` | *(gone — nothing to report; a run returns its own result)* |
+| — | `run({ script })` — execute a script against the library |
+
+**The bridges themselves are pass-throughs, so upgrading is not what moves you
+across** — they list tools from the hosted server at call time, and 1.x already
+sees the new ones. The major bump marks the contract change honestly rather than
+letting it arrive silently. If a host cached the old schema and still calls a
+retired name, the server answers with a message saying what replaced it; it is
+never a silent failure against a dead endpoint.
 
 ---
 

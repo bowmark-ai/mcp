@@ -1,8 +1,10 @@
 # bowmark-mcp — Bowmark MCP over stdio
 
-Bowmark gives agents pre-computed navigation recipes for public websites (skip
-explore-and-discover). The canonical server is hosted, streamable HTTP, no auth
-required: `https://api.bowmark.ai/mcp`.
+Bowmark turns the interaction-gated web into a **callable function library**.
+An agent reads the library (`get_library`), writes a short JavaScript script
+against it, and sends it to `run` — Bowmark executes it on the live sites in a
+sandbox and hands back the result. The canonical server is hosted, streamable
+HTTP, no auth required: `https://api.bowmark.ai/mcp`.
 
 This package is a **thin stdio bridge** to that hosted server, for MCP hosts
 whose client only speaks stdio (for example browser-use's `MCPClient`). Tool
@@ -41,7 +43,7 @@ If your host speaks streamable HTTP, skip this bridge and connect directly to
 | Var | Meaning |
 |---|---|
 | `BOWMARK_MCP_URL` | Target MCP URL. Default `https://api.bowmark.ai/mcp?s=p` (`?s=p` attributes the install to the PyPI bridge). Point at `http://localhost:3001/mcp` for a local Bowmark API. |
-| `BOWMARK_API_KEY` | Optional. Forwarded as `X-Bowmark-Key`; a free key (bowmark.ai dashboard) raises the anonymous per-IP daily synthesis cap to your plan budget. |
+| `BOWMARK_API_KEY` | Optional. Forwarded as `X-Bowmark-Key`; a free key (bowmark.ai dashboard) lifts the anonymous per-IP daily cap to your plan budget. |
 
 ## Design notes (repo-internal)
 
@@ -49,7 +51,7 @@ If your host speaks streamable HTTP, skip this bridge and connect directly to
   an anyio-scoped context manager; holding one session across handler tasks
   trips "exit cancel scope in a different task". The hosted MCP is stateless,
   so a fresh session per request is semantically identical and costs one
-  initialize round-trip — noise next to an `ask` synthesis.
+  initialize round-trip — noise next to a `run` that drives real browsers.
 - **Pass-through only.** No tool logic lives here; the agent-surfaces sync rule
   in the root CLAUDE.md is unaffected because descriptions/schemas ride through
   from `apps/api/src/routes/mcp.ts`.

@@ -1,8 +1,10 @@
 # bowmark-mcp — Bowmark MCP over stdio (Node)
 
-Bowmark gives agents pre-computed navigation recipes for public websites (skip
-explore-and-discover). The canonical server is hosted, streamable HTTP, no auth
-required: `https://api.bowmark.ai/mcp`.
+Bowmark turns the interaction-gated web into a **callable function library**.
+An agent reads the library (`get_library`), writes a short JavaScript script
+against it, and sends it to `run` — Bowmark executes it on the live sites in a
+sandbox and hands back the result. The canonical server is hosted, streamable
+HTTP, no auth required: `https://api.bowmark.ai/mcp`.
 
 This package is a **thin stdio bridge** to that hosted server, for MCP hosts
 whose client only speaks stdio, in Node-flavored environments. Tool schemas,
@@ -33,13 +35,13 @@ If your host speaks streamable HTTP, skip this bridge and connect directly to
 | Var | Meaning |
 |---|---|
 | `BOWMARK_MCP_URL` | Target MCP URL. Default `https://api.bowmark.ai/mcp?s=n` (`?s=n` attributes the install to the npm bridge). Point at `http://localhost:3001/mcp` for a local Bowmark API. |
-| `BOWMARK_API_KEY` | Optional. Forwarded as `X-Bowmark-Key`; a free key (bowmark.ai dashboard) raises the anonymous per-IP daily synthesis cap to your plan budget. |
+| `BOWMARK_API_KEY` | Optional. Forwarded as `X-Bowmark-Key`; a free key (bowmark.ai dashboard) lifts the anonymous per-IP daily cap to your plan budget. |
 
 ## Design notes (repo-internal)
 
 - **One remote session per request, retried once.** The hosted MCP is
   stateless, so a fresh connection is semantically identical and its cost (one
-  initialize round-trip) is noise next to an `ask` synthesis — and it
+  initialize round-trip) is noise next to a `run` that drives real browsers — and it
   sidesteps long-lived-connection failure modes without reconnect bookkeeping.
   Mirrors `packages/bowmark-mcp/python` (the PyPI bridge) exactly.
 - **Pass-through only.** No tool logic lives here; the agent-surfaces sync

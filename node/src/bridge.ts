@@ -24,10 +24,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
+import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 
 export const DEFAULT_URL = "https://api.bowmark.ai/mcp?s=n";
 
@@ -37,13 +34,15 @@ export function targetUrl(env: NodeJS.ProcessEnv = process.env): string {
 
 /** Optional API key -> X-Bowmark-Key header (the hosted MCP also accepts
  * Authorization: Bearer; one header is enough). */
-export function authHeaders(env: NodeJS.ProcessEnv = process.env): Record<string, string> | undefined {
+export function authHeaders(
+  env: NodeJS.ProcessEnv = process.env,
+): Record<string, string> | undefined {
   const key = env.BOWMARK_API_KEY?.trim();
   return key ? { "X-Bowmark-Key": key } : undefined;
 }
 
 async function withRemote<T>(fn: (client: Client) => Promise<T>): Promise<T> {
-  const client = new Client({ name: "bowmark-mcp-bridge", version: "1.0.2" });
+  const client = new Client({ name: "bowmark-mcp-bridge", version: "2.0.0" });
   const headers = authHeaders();
   const transport = new StreamableHTTPClientTransport(new URL(targetUrl()), {
     requestInit: headers ? { headers } : undefined,
@@ -71,10 +70,7 @@ export async function callRemote<T>(
 }
 
 export function buildServer(remote: typeof callRemote = callRemote): Server {
-  const server = new Server(
-    { name: "bowmark", version: "1.0.2" },
-    { capabilities: { tools: {} } },
-  );
+  const server = new Server({ name: "bowmark", version: "2.0.0" }, { capabilities: { tools: {} } });
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return await remote((c) => c.listTools());
   });
