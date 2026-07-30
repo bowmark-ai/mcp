@@ -8,9 +8,9 @@
 // package never needs a re-publish when the api's tools change.
 //
 // Env:
-//   BOWMARK_MCP_URL  Target MCP URL. Default https://api.bowmark.ai/mcp?s=n
-//                    (`?s=n` tags the install source as the npm bridge;
-//                    point at http://localhost:3001/mcp for a local API).
+//   BOWMARK_MCP_URL  Target MCP URL. Default https://api.bowmark.ai/mcp/npm
+//                    (the `/npm` destination attributes the install to this
+//                    bridge; point at http://localhost:3001/mcp for a local API).
 //   BOWMARK_API_KEY  Optional key, forwarded as X-Bowmark-Key. Omit for the
 //                    anonymous tier.
 //
@@ -26,7 +26,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 
-export const DEFAULT_URL = "https://api.bowmark.ai/mcp?s=n";
+export const DEFAULT_URL = "https://api.bowmark.ai/mcp/npm";
 
 export function targetUrl(env: NodeJS.ProcessEnv = process.env): string {
   return env.BOWMARK_MCP_URL?.trim() || DEFAULT_URL;
@@ -41,11 +41,27 @@ export function authHeaders(
   return key ? { "X-Bowmark-Key": key } : undefined;
 }
 
-async function withRemote<T>(fn: (client: Client) => Promise<T>): Promise<T> {
+/** Relay WHICH HOST is really on the other end.
+ *
+ * The hosted MCP tailors its instructions per host (ChatGPT vs a chat app vs a
+ * coding agent), and it detects the host from the `clientInfo` on the
+ * handshake. Through this bridge that signal is destroyed: we open our OWN
+ * session upstream, so the name the api would see is `bowmark-mcp-bridge` and
+ * every install through npm resolves to the platform-neutral text.
+ *
+ * The real host named itself on OUR stdio handshake, so relay that name on
+ * every proxied request. Best-effort: `undefined` before the host has
+ * initialized, and the api treats an unrecognized name the same as none. */
+export function clientHeaders(hostName: string | undefined): Record<string, string> | undefined {
+  const name = hostName?.trim();
+  return name ? { "X-Bowmark-Client": name } : undefined;
+}
+
+async function withRemote<T>(fn: (client: Client) => Promise<T>, hostName?: string): Promise<T> {
   const client = new Client({ name: "bowmark-mcp-bridge", version: "2.0.0" });
-  const headers = authHeaders();
+  const headers = { ...authHeaders(), ...clientHeaders(hostName) };
   const transport = new StreamableHTTPClientTransport(new URL(targetUrl()), {
-    requestInit: headers ? { headers } : undefined,
+    requestInit: Object.keys(headers).length > 0 ? { headers } : undefined,
   });
   await client.connect(transport);
   try {
@@ -60,12 +76,13 @@ async function withRemote<T>(fn: (client: Client) => Promise<T>): Promise<T> {
 export async function callRemote<T>(
   fn: (client: Client) => Promise<T>,
   connect: typeof withRemote = withRemote,
+  hostName?: string,
 ): Promise<T> {
   try {
-    return await connect(fn);
+    return await connect(fn, hostName);
   } catch (first) {
     console.error(`bowmark-mcp: retrying after: ${String(first)}`);
-    return await connect(fn);
+    return await connect(fn, hostName);
   }
 }
 
@@ -76,6 +93,14 @@ export async function callRemote<T>(
  * request. Fetching once at startup keeps the hosted server the single source of
  * truth (the alternative, a hardcoded copy here, would drift the moment the api
  * changed it and could only be corrected by an npm re-publish).
+ *
+ * KNOWN LIMITATION, and it is the reason this is not a bug report: the api tailors
+ * its instructions PER HOST, but this fetch happens before any host has connected
+ * to us, so we cannot relay a host name yet and the api answers with its
+ * platform-neutral text. Tool descriptions, fetched per request once the host HAS
+ * identified itself, are correctly per-host. Pinning a destination in
+ * BOWMARK_MCP_URL (e.g. .../mcp/cursor) is the way to get tailored instructions
+ * through a bridge.
  *
  * Returns undefined on any failure: instructions are a ranking hint, and a
  * bridge that refused to start because a hint was unavailable would be strictly
@@ -96,14 +121,20 @@ export function buildServer(remote: typeof callRemote = callRemote, instructions
     { name: "bowmark", version: "2.0.0" },
     { capabilities: { tools: {} }, instructions },
   );
+  // Whoever ran us said who they are on the stdio handshake. Read it per
+  // request rather than once: `tools/list` can arrive before the SDK has
+  // recorded it, and a fresh read costs nothing.
+  const hostName = () => server.getClientVersion()?.name;
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return await remote((c) => c.listTools());
+    return await remote((c) => c.listTools(), undefined, hostName());
   });
   server.setRequestHandler(CallToolRequestSchema, async (req) => {
     // Returned verbatim — content, structuredContent, and isError all ride
     // through, so upstream errors reach the host exactly as the api sent them.
-    return await remote((c) =>
-      c.callTool({ name: req.params.name, arguments: req.params.arguments ?? {} }),
+    return await remote(
+      (c) => c.callTool({ name: req.params.name, arguments: req.params.arguments ?? {} }),
+      undefined,
+      hostName(),
     );
   });
   return server;

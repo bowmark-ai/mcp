@@ -38,7 +38,7 @@ def _tool_result(text: str, is_error: bool) -> types.CallToolResult:
 
 
 def test_call_tool_passes_content_through(monkeypatch):
-    async def fake_call_remote(fn):
+    async def fake_call_remote(fn, host=None):
         return _tool_result('{"status":"ok"}', is_error=False)
 
     monkeypatch.setattr(bowmark_mcp, "call_remote", fake_call_remote)
@@ -48,7 +48,7 @@ def test_call_tool_passes_content_through(monkeypatch):
 
 
 def test_call_tool_raises_on_upstream_error(monkeypatch):
-    async def fake_call_remote(fn):
+    async def fake_call_remote(fn, host=None):
         return _tool_result("upstream exploded", is_error=True)
 
     monkeypatch.setattr(bowmark_mcp, "call_remote", fake_call_remote)
@@ -59,7 +59,7 @@ def test_call_tool_raises_on_upstream_error(monkeypatch):
 def test_call_remote_retries_once_then_raises(monkeypatch):
     calls = {"n": 0}
 
-    async def flaky(_fn):
+    async def flaky(_fn, _host=None):
         calls["n"] += 1
         raise ConnectionError("boom")
 
@@ -72,7 +72,7 @@ def test_call_remote_retries_once_then_raises(monkeypatch):
 def test_call_remote_retry_succeeds(monkeypatch):
     calls = {"n": 0}
 
-    async def flaky_then_ok(_fn):
+    async def flaky_then_ok(_fn, _host=None):
         calls["n"] += 1
         if calls["n"] == 1:
             raise ConnectionError("boom")
@@ -96,9 +96,45 @@ def test_error_text_flattens_and_falls_back():
     assert bowmark_mcp.error_text(r2, "ask") == "a; b"
 
 
+def test_client_headers_relays_the_real_host():
+    # Without this the api sees the BRIDGE, not the host, and every install
+    # through PyPI reads the platform-neutral instructions.
+    assert bowmark_mcp.client_headers("claude-code") == {"X-Bowmark-Client": "claude-code"}
+    assert bowmark_mcp.client_headers(None) is None
+    assert bowmark_mcp.client_headers("   ") is None
+
+
+def test_merged_headers_carries_key_and_host(monkeypatch):
+    monkeypatch.setenv("BOWMARK_API_KEY", "bmk_test123")
+    assert bowmark_mcp._merged_headers("cursor") == {
+        "X-Bowmark-Key": "bmk_test123",
+        "X-Bowmark-Client": "cursor",
+    }
+    monkeypatch.delenv("BOWMARK_API_KEY", raising=False)
+    assert bowmark_mcp._merged_headers(None) is None
+
+
+def test_host_name_is_none_outside_a_request():
+    # request_context is a contextvar; reading it outside a request raises, and
+    # that must degrade to None rather than breaking the call.
+    assert bowmark_mcp.host_name(bowmark_mcp.build_server()) is None
+
+
+def test_host_name_threads_through_to_call_remote(monkeypatch):
+    seen = {}
+
+    async def fake_call_remote(fn, host=None):
+        seen["host"] = host
+        return _tool_result('{"status":"ok"}', is_error=False)
+
+    monkeypatch.setattr(bowmark_mcp, "call_remote", fake_call_remote)
+    asyncio.run(bowmark_mcp.call_tool_impl("run", {"script": "x"}, "claude-ai"))
+    assert seen["host"] == "claude-ai"
+
 def test_build_server_carries_instructions():
     # Instructions ride on OUR initialize, so they cannot be proxied per request
     # the way tools are. If this stops threading through, stdio hosts silently
     # lose the strongest triggering surface with nothing failing.
     assert bowmark_mcp.build_server("check here first").instructions == "check here first"
     assert bowmark_mcp.build_server().instructions is None
+

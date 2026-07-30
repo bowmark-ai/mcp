@@ -8,9 +8,10 @@ and envelopes pass through verbatim, so the hosted server stays the single
 source of truth.
 
 Env:
-  BOWMARK_MCP_URL   Target MCP URL. Default ``https://api.bowmark.ai/mcp?s=p``
-                    (the ``?s=p`` tags the install source as the PyPI bridge;
-                    point at ``http://localhost:3001/mcp`` for a local API).
+  BOWMARK_MCP_URL   Target MCP URL. Default ``https://api.bowmark.ai/mcp/pypi``
+                    (the ``/pypi`` destination attributes the install to this
+                    bridge; point at ``http://localhost:3001/mcp`` for a local
+                    API).
   BOWMARK_API_KEY   Optional Bowmark API key, forwarded as ``X-Bowmark-Key``.
                     Omit for the anonymous tier.
 
@@ -38,7 +39,7 @@ from mcp.client.streamable_http import streamablehttp_client
 from mcp.server.lowlevel import Server
 from mcp.server.stdio import stdio_server
 
-DEFAULT_URL = "https://api.bowmark.ai/mcp?s=p"
+DEFAULT_URL = "https://api.bowmark.ai/mcp/pypi"
 
 T = TypeVar("T")
 
@@ -54,8 +55,33 @@ def auth_headers() -> dict[str, str] | None:
     return {"X-Bowmark-Key": key} if key else None
 
 
-async def _with_remote(fn: Callable[[ClientSession], Awaitable[T]]) -> T:
-    async with streamablehttp_client(target_url(), headers=auth_headers()) as (
+def client_headers(host_name: str | None) -> dict[str, str] | None:
+    """Relay WHICH HOST is really on the other end.
+
+    The hosted MCP tailors its instructions per host (ChatGPT vs a chat app vs
+    a coding agent) and detects the host from the ``clientInfo`` on the
+    handshake. Through this bridge that signal is destroyed: we open our OWN
+    session upstream, so the name the api would see is the bridge's and every
+    install through PyPI resolves to the platform-neutral text.
+
+    The real host named itself on OUR stdio handshake, so relay that name on
+    every proxied request. Best-effort: ``None`` before the host has
+    initialized, and the api treats an unrecognized name the same as none."""
+    name = (host_name or "").strip()
+    return {"X-Bowmark-Client": name} if name else None
+
+
+def _merged_headers(host_name: str | None) -> dict[str, str] | None:
+    merged = {**(auth_headers() or {}), **(client_headers(host_name) or {})}
+    return merged or None
+
+
+async def _with_remote(
+    fn: Callable[[ClientSession], Awaitable[T]], host_name: str | None = None
+) -> T:
+    async with streamablehttp_client(
+        target_url(), headers=_merged_headers(host_name)
+    ) as (
         read,
         write,
         _,
@@ -65,14 +91,16 @@ async def _with_remote(fn: Callable[[ClientSession], Awaitable[T]]) -> T:
             return await fn(session)
 
 
-async def call_remote(fn: Callable[[ClientSession], Awaitable[T]]) -> T:
+async def call_remote(
+    fn: Callable[[ClientSession], Awaitable[T]], host_name: str | None = None
+) -> T:
     """One retry on any failure: the remote is stateless, so a fresh session is
     equivalent, and a transient network blip shouldn't fail the host's call."""
     try:
-        return await _with_remote(fn)
+        return await _with_remote(fn, host_name)
     except Exception as first:
         print(f"bowmark-mcp: retrying after: {first}", file=sys.stderr)
-        return await _with_remote(fn)
+        return await _with_remote(fn, host_name)
 
 
 def error_text(result: types.CallToolResult, name: str) -> str:
@@ -81,13 +109,30 @@ def error_text(result: types.CallToolResult, name: str) -> str:
     return "; ".join(t for t in texts if t) or f"{name} failed upstream"
 
 
-async def list_tools_impl() -> list[types.Tool]:
-    res = await call_remote(lambda s: s.list_tools())
+def host_name(server: Server) -> str | None:
+    """The name the REAL host gave on our stdio handshake, or None.
+
+    Best-effort by construction: ``request_context`` is a contextvar that only
+    exists inside a request, and a host may omit ``clientInfo``. A None here
+    costs the platform-neutral text upstream, never a failed call, so every
+    failure mode collapses to the same harmless answer."""
+    try:
+        params = server.request_context.session.client_params
+    except (LookupError, AttributeError):
+        return None
+    info = getattr(params, "clientInfo", None)
+    return getattr(info, "name", None)
+
+
+async def list_tools_impl(host: str | None = None) -> list[types.Tool]:
+    res = await call_remote(lambda s: s.list_tools(), host)
     return res.tools
 
 
-async def call_tool_impl(name: str, arguments: dict[str, Any] | None) -> list[Any]:
-    result = await call_remote(lambda s: s.call_tool(name, arguments or {}))
+async def call_tool_impl(
+    name: str, arguments: dict[str, Any] | None, host: str | None = None
+) -> list[Any]:
+    result = await call_remote(lambda s: s.call_tool(name, arguments or {}), host)
     # The lowlevel server wraps a raised exception as an isError result with
     # the exception text, so upstream errors round-trip with their message.
     if result.isError:
@@ -103,6 +148,14 @@ async def fetch_instructions() -> str | None:
     Fetching once at startup keeps the hosted server the single source of truth
     (a hardcoded copy here would drift the moment the api changed it, and could
     only be corrected by a PyPI re-publish).
+
+    KNOWN LIMITATION, and the reason this is documented rather than filed: the api
+    tailors its instructions PER HOST, but this fetch happens before any host has
+    connected to us, so there is no host name to relay yet and the api answers
+    with its platform-neutral text. Tool descriptions, fetched per request once
+    the host HAS identified itself, are correctly per-host. Pinning a destination
+    in ``BOWMARK_MCP_URL`` (e.g. ``.../mcp/cursor``) is the way to get tailored
+    instructions through a bridge.
 
     Returns None on any failure: instructions are a ranking hint, and a bridge
     that refused to start because a hint was unavailable would be strictly worse
@@ -126,8 +179,18 @@ async def fetch_instructions() -> str | None:
 
 def build_server(instructions: str | None = None) -> Server:
     server = Server("bowmark", instructions=instructions)
-    server.list_tools()(list_tools_impl)
-    server.call_tool()(call_tool_impl)
+
+    # Thin closures rather than passing the impls directly: the SDK calls a
+    # handler with only the protocol's own arguments, so the host name has to be
+    # read from the live request context here and threaded in.
+    async def _list_tools() -> list[types.Tool]:
+        return await list_tools_impl(host_name(server))
+
+    async def _call_tool(name: str, arguments: dict[str, Any] | None) -> list[Any]:
+        return await call_tool_impl(name, arguments, host_name(server))
+
+    server.list_tools()(_list_tools)
+    server.call_tool()(_call_tool)
     return server
 
 

@@ -34,7 +34,7 @@ If your host speaks streamable HTTP, skip this bridge and connect directly to
 
 | Var | Meaning |
 |---|---|
-| `BOWMARK_MCP_URL` | Target MCP URL. Default `https://api.bowmark.ai/mcp?s=n` (`?s=n` attributes the install to the npm bridge). Point at `http://localhost:3001/mcp` for a local Bowmark API. |
+| `BOWMARK_MCP_URL` | Target MCP URL. Default `https://api.bowmark.ai/mcp/npm` (the `/npm` destination attributes the install to this bridge). Point at `http://localhost:3001/mcp` for a local Bowmark API. |
 | `BOWMARK_API_KEY` | Optional. Forwarded as `X-Bowmark-Key`; a free key (bowmark.ai dashboard) lifts the anonymous per-IP daily cap to your plan budget. |
 
 ## Design notes (repo-internal)
@@ -44,13 +44,24 @@ If your host speaks streamable HTTP, skip this bridge and connect directly to
   initialize round-trip) is noise next to a `run` that drives real browsers — and it
   sidesteps long-lived-connection failure modes without reconnect bookkeeping.
   Mirrors `packages/bowmark-mcp/python` (the PyPI bridge) exactly.
+- **The real host's name is relayed upstream.** The api tailors its operating
+  guidance per host and detects the host from `clientInfo` on the handshake —
+  but through a bridge that names the BRIDGE, so every install here would read
+  the platform-neutral text. So the host's own `clientInfo.name` (from OUR stdio
+  handshake) is forwarded as `X-Bowmark-Client` on every proxied request, and the
+  api ranks that above its own handshake. Best-effort: an unknown or missing name
+  simply falls back to the neutral text, never an error.
 - **Pass-through only.** No tool logic lives here; the agent-surfaces sync
   rule in the root CLAUDE.md is unaffected because descriptions/schemas ride
   through from `apps/api/src/routes/mcp.ts`. `callTool` results are returned
   verbatim (content, structuredContent, isError).
-- **`?s=n` source code** is registered in `apps/api/src/mcp-sources.ts` +
-  `mcp-registry/sources.json` (npm stdio bridge channel; the PyPI bridge is
-  `?s=p`).
+- **The `/npm` destination** is registered in
+  `apps/api/src/mcp-destinations.ts` + `mcp-registry/sources.json` (npm stdio
+  bridge channel; the PyPI bridge is `/pypi`). It carries the channel and
+  deliberately pins NO platform, because the relayed `X-Bowmark-Client` above is
+  a better answer than any pin. The old `?s=n` query form still resolves for
+  installs already in the wild. Adding a destination:
+  `.claude/rules/mcp-destinations.md`.
 - **npm ownership verification needs BOTH markers — the registry checks the
   published package.json, not just the README.** The `mcp-name:
   ai.bowmark/bowmark` line above and the `"mcpName": "ai.bowmark/bowmark"`
