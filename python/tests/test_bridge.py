@@ -94,3 +94,11 @@ def test_error_text_flattens_and_falls_back():
         isError=True,
     )
     assert bowmark_mcp.error_text(r2, "ask") == "a; b"
+
+
+def test_build_server_carries_instructions():
+    # Instructions ride on OUR initialize, so they cannot be proxied per request
+    # the way tools are. If this stops threading through, stdio hosts silently
+    # lose the strongest triggering surface with nothing failing.
+    assert bowmark_mcp.build_server("check here first").instructions == "check here first"
+    assert bowmark_mcp.build_server().instructions is None

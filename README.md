@@ -20,6 +20,15 @@ from the hosted server at runtime, so the bridges never lag the api and there
 is no logic here to audit beyond "forward the request." Pick whichever runtime
 your environment already has; they are interchangeable.
 
+**The one thing that cannot be lazy: `instructions`.** Server-level instructions
+ride on the bridge's OWN initialize, which happens before it has talked to the
+api, so unlike tools they cannot be fetched per request. Each bridge does one
+extra initialize at startup purely to read them and pass them on. That keeps the
+hosted server the single source of truth; a hardcoded copy here would drift the
+moment the api changed it and could only be fixed by a re-publish. If the fetch
+fails the bridge starts without them, because a ranking hint is never worth
+refusing to serve over.
+
 ```json
 { "mcpServers": { "bowmark": { "command": "uvx", "args": ["bowmark-mcp"] } } }
 ```

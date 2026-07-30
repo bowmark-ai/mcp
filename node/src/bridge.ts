@@ -69,8 +69,33 @@ export async function callRemote<T>(
   }
 }
 
-export function buildServer(remote: typeof callRemote = callRemote): Server {
-  const server = new Server({ name: "bowmark", version: "2.0.0" }, { capabilities: { tools: {} } });
+/** The hosted server's `instructions` string, fetched with one initialize.
+ *
+ * Instructions are handed to the host at OUR initialize, which happens before we
+ * have talked to the remote — so unlike tools they cannot be lazily proxied per
+ * request. Fetching once at startup keeps the hosted server the single source of
+ * truth (the alternative, a hardcoded copy here, would drift the moment the api
+ * changed it and could only be corrected by an npm re-publish).
+ *
+ * Returns undefined on any failure: instructions are a ranking hint, and a
+ * bridge that refused to start because a hint was unavailable would be strictly
+ * worse than one that starts without it. */
+export async function fetchInstructions(
+  remote: typeof callRemote = callRemote,
+): Promise<string | undefined> {
+  try {
+    return await remote(async (c) => c.getInstructions());
+  } catch (err) {
+    console.error(`bowmark-mcp: could not read server instructions: ${String(err)}`);
+    return undefined;
+  }
+}
+
+export function buildServer(remote: typeof callRemote = callRemote, instructions?: string): Server {
+  const server = new Server(
+    { name: "bowmark", version: "2.0.0" },
+    { capabilities: { tools: {} }, instructions },
+  );
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return await remote((c) => c.listTools());
   });

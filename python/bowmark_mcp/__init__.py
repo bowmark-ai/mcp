@@ -95,15 +95,44 @@ async def call_tool_impl(name: str, arguments: dict[str, Any] | None) -> list[An
     return list(result.content)
 
 
-def build_server() -> Server:
-    server = Server("bowmark")
+async def fetch_instructions() -> str | None:
+    """The hosted server's ``instructions`` string, fetched with one initialize.
+
+    Instructions are handed to the host at OUR initialize, before we have talked
+    to the remote, so unlike tools they cannot be lazily proxied per request.
+    Fetching once at startup keeps the hosted server the single source of truth
+    (a hardcoded copy here would drift the moment the api changed it, and could
+    only be corrected by a PyPI re-publish).
+
+    Returns None on any failure: instructions are a ranking hint, and a bridge
+    that refused to start because a hint was unavailable would be strictly worse
+    than one that starts without it.
+    """
+    # NOT routed through call_remote: _with_remote already calls initialize()
+    # itself, and a second initialize on the same session is a protocol error.
+    # This opens its own short-lived session and reads that one handshake.
+    try:
+        async with streamablehttp_client(target_url(), headers=auth_headers()) as (
+            read,
+            write,
+            _,
+        ):
+            async with ClientSession(read, write) as session:
+                return (await session.initialize()).instructions
+    except Exception as err:  # noqa: BLE001 — a hint is never worth failing over
+        print(f"bowmark-mcp: could not read server instructions: {err}", file=sys.stderr)
+        return None
+
+
+def build_server(instructions: str | None = None) -> Server:
+    server = Server("bowmark", instructions=instructions)
     server.list_tools()(list_tools_impl)
     server.call_tool()(call_tool_impl)
     return server
 
 
 async def _serve() -> None:
-    server = build_server()
+    server = build_server(await fetch_instructions())
     async with stdio_server() as (read, write):
         await server.run(read, write, server.create_initialization_options())
 
