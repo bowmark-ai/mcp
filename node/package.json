@@ -1,6 +1,6 @@
 {
   "name": "bowmark-mcp",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "mcpName": "ai.bowmark/bowmark",
   "description": "Bowmark MCP over stdio \u2014 a thin bridge to the hosted Bowmark MCP at https://api.bowmark.ai/mcp. The web as callable functions: read a typed library, write a script, Bowmark runs it on the live sites.",
   "license": "MIT",
