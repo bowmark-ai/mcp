@@ -144,7 +144,7 @@ stdio tab's Node step points at `npx @bowmark/mcp`.
 is per PACKAGE, not per org, and npm cannot configure a trusted publisher for
 a package that does not exist — so `@bowmark/mcp` has to be reserved by a
 manual first publish and then configured, exactly the way Phase 8 of
-`docs/plans/public-types-package.md` did for `@bowmark/web`. Until that
+`docs/decisions/2026-08-05-the-npm-bridge-is-scoped-and-the-old-name-forwards.md` records. Until that
 happens the `npm` job here fails on auth, and it is a registry-configuration
 problem rather than a workflow one. The forwarder in `../node-compat/`
 publishes under the EXISTING `bowmark-mcp` name and keeps its existing trust
