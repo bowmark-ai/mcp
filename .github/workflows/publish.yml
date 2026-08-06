@@ -197,6 +197,17 @@ jobs:
           echo "::error::@bowmark/mcp@$WANT never appeared. Publishing the forwarder now would ship an uninstallable package, and npm cannot be unpublished."
           exit 1
 
+      # NOT optional, and not the same thing as the sibling job's install step.
+      # There is nothing to install for this package — it has no dependencies to
+      # fetch here and no build — but **trusted publishing needs npm >= 11.5.1
+      # and Node 22 bundles npm 10**, which does not speak OIDC at all and falls
+      # straight through to looking for a token: `npm error code ENEEDAUTH`.
+      # Measured 2026-08-06 on this job's first run, where the sibling `npm` job
+      # published fine because its install step happened to upgrade npm.
+      - name: Upgrade npm for trusted publishing
+        if: steps.decide.outputs.publish == 'true'
+        run: npm install -g npm
+
       - name: Publish to npm
         if: steps.decide.outputs.publish == 'true'
         run: |
