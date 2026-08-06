@@ -1,0 +1,32 @@
+{
+  "name": "bowmark-mcp",
+  "version": "2.1.0",
+  "description": "Compatibility forwarder. The Bowmark stdio MCP bridge now ships as @bowmark/mcp; this package re-execs it so every config already in the wild keeps working.",
+  "license": "MIT",
+  "author": "Bowmark AI <christopher@bowmark.ai>",
+  "homepage": "https://bowmark.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bowmark-ai/mcp.git",
+    "directory": "node-compat"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "bowmark"
+  ],
+  "type": "module",
+  "bin": {
+    "bowmark-mcp": "bin/bowmark-mcp.mjs"
+  },
+  "files": [
+    "bin",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@bowmark/mcp": "2.1.0"
+  }
+}

@@ -2,7 +2,7 @@
 //
 // A thin stdio MCP server that proxies every request to the hosted Bowmark
 // MCP (streamable HTTP, https://api.bowmark.ai/mcp). Exists for stdio-only
-// MCP hosts in Node-flavored environments: they run `npx bowmark-mcp` and get
+// MCP hosts in Node-flavored environments: they run `npx @bowmark/mcp` and get
 // the exact hosted tools — schemas, descriptions, and envelopes pass through
 // verbatim, so the hosted server stays the single source of truth and this
 // package never needs a re-publish when the api's tools change.
@@ -58,7 +58,7 @@ export function clientHeaders(hostName: string | undefined): Record<string, stri
 }
 
 async function withRemote<T>(fn: (client: Client) => Promise<T>, hostName?: string): Promise<T> {
-  const client = new Client({ name: "bowmark-mcp-bridge", version: "2.0.1" });
+  const client = new Client({ name: "bowmark-mcp-bridge", version: "2.1.0" });
   const headers = { ...authHeaders(), ...clientHeaders(hostName) };
   const transport = new StreamableHTTPClientTransport(new URL(targetUrl()), {
     requestInit: Object.keys(headers).length > 0 ? { headers } : undefined,
@@ -118,7 +118,7 @@ export async function fetchInstructions(
 
 export function buildServer(remote: typeof callRemote = callRemote, instructions?: string): Server {
   const server = new Server(
-    { name: "bowmark", version: "2.0.1" },
+    { name: "bowmark", version: "2.1.0" },
     { capabilities: { tools: {} }, instructions },
   );
   // Whoever ran us said who they are on the stdio handshake. Read it per

@@ -8,14 +8,24 @@ hosted, streamable HTTP, no auth required: `https://api.bowmark.ai/mcp`.
 
 Some MCP hosts only speak **stdio** — browser-use, and many self-built agent
 stacks. This repo holds two thin stdio bridges to the same hosted server, one
-per ecosystem, both published as `bowmark-mcp`:
+per ecosystem:
 
 | Runtime | Install | Source |
 |---|---|---|
 | Python | `uvx bowmark-mcp` (PyPI) | [`python/`](python/) |
-| Node | `npx bowmark-mcp` (npm) | [`node/`](node/) |
+| Node | `npx @bowmark/mcp` (npm) | [`node/`](node/) |
+| Node, old name | `npx bowmark-mcp` — a forwarder, still works | [`node-compat/`](node-compat/) |
 
-Both are verbatim pass-throughs: tool schemas, descriptions, and results come
+**The npm package is scoped and the PyPI one is not, deliberately.** npm moved to
+`@bowmark/mcp` on 2026-08-05; PyPI cannot be scoped at all (PEP 752 standardises
+hyphen-prefixed namespaces, and PyPI has no rename, alias or redirect), so
+`bowmark-mcp` there is already the blessed form and is unchanged. The unscoped
+npm name is not retired — `node-compat/` publishes it as a package whose `bin`
+re-execs the scoped one, because npm cannot be unpublished and `npm deprecate`
+only warns. Every config in the wild keeps working; new ones should say
+`@bowmark/mcp`.
+
+Both bridges are verbatim pass-throughs: tool schemas, descriptions, and results come
 from the hosted server at runtime, so the bridges never lag the api and there
 is no logic here to audit beyond "forward the request." Pick whichever runtime
 your environment already has; they are interchangeable.
@@ -34,7 +44,7 @@ refusing to serve over.
 ```
 
 ```json
-{ "mcpServers": { "bowmark": { "command": "npx", "args": ["bowmark-mcp"] } } }
+{ "mcpServers": { "bowmark": { "command": "npx", "args": ["@bowmark/mcp"] } } }
 ```
 
 If your host speaks streamable HTTP, skip the bridge entirely and connect to

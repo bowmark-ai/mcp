@@ -1,7 +1,24 @@
 name: publish
 
-# Publishes the stdio bridges to PyPI (python/) and npm (node/) whenever the
-# monorepo mirror-sync lands a new manifest version.
+# Publishes the stdio bridges to PyPI (python/) and npm (node/ + node-compat/)
+# whenever the monorepo mirror-sync lands a new manifest version.
+#
+# THREE packages, two registries, and the npm names diverge from the PyPI one on
+# purpose:
+#
+#   python/       → PyPI `bowmark-mcp`   — unchanged, and under PEP 752 this is
+#                                          the blessed form. PyPI cannot be
+#                                          scoped and has no rename or alias.
+#   node/         → npm  `@bowmark/mcp`  — canonical since 2026-08-05.
+#   node-compat/  → npm  `bowmark-mcp`   — a forwarder whose bin re-execs the
+#                                          scoped package, so every config in
+#                                          the wild keeps working. npm cannot be
+#                                          unpublished and `npm deprecate` only
+#                                          warns, so this is what actually
+#                                          preserves compatibility.
+#
+# Do not "fix" the npm/PyPI asymmetry — `gate:facts-agree` asserts the versions
+# match and deliberately does not assert the names do.
 #
 # This file lives at packages/bowmark-mcp/.github/workflows/publish.yml in
 # Metroxe/bowmark (inert there — GitHub only runs repo-root workflows) and
@@ -93,9 +110,10 @@ jobs:
         id: decide
         run: |
           set -euo pipefail
+          NAME=$(node -p "require('./package.json').name")
           LOCAL=$(node -p "require('./package.json').version")
-          LIVE=$(npm view bowmark-mcp version 2>/dev/null || echo "none")
-          echo "local=$LOCAL live=$LIVE"
+          LIVE=$(npm view "$NAME" version 2>/dev/null || echo "none")
+          echo "name=$NAME local=$LOCAL live=$LIVE"
           if [ "$LOCAL" = "$LIVE" ]; then
             echo "Version $LOCAL already on npm — nothing to publish."
             echo "publish=false" >> "$GITHUB_OUTPUT"
@@ -121,4 +139,68 @@ jobs:
           # prepublishOnly (package.json) builds via tsc before packing.
           # No token / .npmrc: npm exchanges the job's GitHub OIDC token
           # with the registry (trusted publishing).
+          #
+          # `--access public` is not decoration for a SCOPED package: npm
+          # defaults a new @scope/name to RESTRICTED, and a restricted publish
+          # on a free org is refused outright.
+          npm publish --access public
+
+  # The `bowmark-mcp` name, kept alive. Separate job rather than a matrix over
+  # the two directories: this one has no build step, no devDependencies and its
+  # own trusted-publisher configuration on npm, and a matrix would hide the fact
+  # that a failure here means the OLD name stopped publishing while the new one
+  # kept going — which is the failure nobody would notice.
+  npm-compat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: node-compat
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Decide whether to publish
+        id: decide
+        run: |
+          set -euo pipefail
+          LOCAL=$(node -p "require('./package.json').version")
+          LIVE=$(npm view bowmark-mcp version 2>/dev/null || echo "none")
+          echo "local=$LOCAL live=$LIVE"
+          if [ "$LOCAL" = "$LIVE" ]; then
+            echo "Version $LOCAL already on npm — nothing to publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The forwarder pins `@bowmark/mcp` to an EXACT version, so publishing it
+      # before that version is live on the registry would ship a package that
+      # cannot install — and npm cannot be unpublished past 72h. Wait for it
+      # rather than racing the sibling job.
+      - name: Wait for the canonical package to be live
+        if: steps.decide.outputs.publish == 'true'
+        run: |
+          set -euo pipefail
+          WANT=$(node -p "require('./package.json').dependencies['@bowmark/mcp']")
+          for attempt in $(seq 1 30); do
+            if npm view "@bowmark/mcp@$WANT" version >/dev/null 2>&1; then
+              echo "@bowmark/mcp@$WANT is live."
+              exit 0
+            fi
+            echo "attempt $attempt: @bowmark/mcp@$WANT not on the registry yet, waiting 20s"
+            sleep 20
+          done
+          echo "::error::@bowmark/mcp@$WANT never appeared. Publishing the forwarder now would ship an uninstallable package, and npm cannot be unpublished."
+          exit 1
+
+      - name: Publish to npm
+        if: steps.decide.outputs.publish == 'true'
+        run: |
+          set -euo pipefail
+          # Unscoped and already public; `--access public` is a no-op here and
+          # is passed anyway so the two jobs read identically.
           npm publish --access public

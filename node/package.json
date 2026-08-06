@@ -1,6 +1,6 @@
 {
-  "name": "bowmark-mcp",
-  "version": "2.0.1",
+  "name": "@bowmark/mcp",
+  "version": "2.1.0",
   "mcpName": "ai.bowmark/bowmark",
   "description": "Bowmark MCP over stdio \u2014 a thin bridge to the hosted Bowmark MCP at https://api.bowmark.ai/mcp. The web as callable functions: read a typed library, write a script, Bowmark runs it on the live sites.",
   "license": "MIT",
@@ -20,7 +20,12 @@
   ],
   "type": "module",
   "bin": {
-    "bowmark-mcp": "dist/cli.js"
+    "bowmark": "dist/cli.js"
+  },
+  "exports": {
+    ".": "./dist/bridge.js",
+    "./cli": "./dist/cli.js",
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",
@@ -31,7 +36,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "prepublishOnly": "rm -rf dist && tsc -p tsconfig.json",
+    "prepack": "rm -rf dist && tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

@@ -1,4 +1,4 @@
-# bowmark-mcp — Bowmark MCP over stdio (Node)
+# @bowmark/mcp — Bowmark MCP over stdio (Node)
 
 Bowmark turns the interaction-gated web into a **callable function library**.
 An agent reads the library (`get_library`), writes a short JavaScript script
@@ -11,21 +11,42 @@ whose client only speaks stdio, in Node-flavored environments. Tool schemas,
 descriptions, and results pass through verbatim — the hosted server stays the
 single source of truth; nothing is reimplemented here. (Python-flavored
 environments: the same bridge exists on PyPI as `bowmark-mcp` — `uvx
-bowmark-mcp`.)
+bowmark-mcp`. The npm name is scoped and the PyPI one is not, deliberately —
+PyPI cannot be scoped and has no rename mechanism.)
+
+**Renamed from `bowmark-mcp` on 2026-08-05.** That name still works: it is
+published from [`../node-compat/`](../node-compat/) as a package whose `bin`
+re-execs this one. Nothing breaks, and nothing is unpublished.
 
 `mcp-name: ai.bowmark/bowmark`
 
 ## Use
 
 ```sh
-npx bowmark-mcp
+npx @bowmark/mcp
 ```
 
 Any MCP host config:
 
 ```json
-{ "mcpServers": { "bowmark": { "command": "npx", "args": ["bowmark-mcp"] } } }
+{ "mcpServers": { "bowmark": { "command": "npx", "args": ["@bowmark/mcp"] } } }
 ```
+
+Installed globally, the command is **`bowmark`**, not `bowmark-mcp`:
+
+```sh
+npm i -g @bowmark/mcp && bowmark
+```
+
+`npx @bowmark/mcp` works despite the mismatch because npm falls back to a
+package's only bin when no bin matches the requested name. **Do not add a second
+bin here** — that fallback is what makes the documented install line resolve, and
+a second entry silently breaks it. `bowmark-mcp` is the FORWARDER's bin and may
+not also be this package's: when both declared it, installing the forwarder
+linked `node_modules/.bin/bowmark-mcp` at THIS cli (npm hoists a transitive
+dependency's bin over the direct one, and says nothing), so the forwarder's
+notice silently never printed. Measured 2026-08-05.
+`tests/unit/mcp-stdio-node.test.ts` holds both halves.
 
 If your host speaks streamable HTTP, skip this bridge and connect directly to
 `https://api.bowmark.ai/mcp`.
@@ -74,6 +95,16 @@ If your host speaks streamable HTTP, skip this bridge and connect directly to
 - **Versioning is manual** (thin bridge, not the api): bump `package.json`
   when it changes. Not wired into release-please; `private` is deliberately
   absent so npm publish works — release-please doesn't manage this package.
+  Three manifests move together and `gate:facts-agree` refuses a skew: this
+  one, `../python/pyproject.toml` (the bridges are interchangeable by
+  contract), and `../node-compat/package.json` plus its `@bowmark/mcp`
+  dependency pin (a forwarder on an old version silently serves an old bridge
+  to everyone who never migrated).
+- **`exports` is load-bearing and narrow on purpose.** `./cli` exists so
+  `node-compat/bin/bowmark-mcp.mjs` can `import("@bowmark/mcp/cli")` as a
+  declared entry point rather than deep-importing someone's `dist/`. Adding
+  `exports` at all closed off every other subpath — which is the intent, but it
+  means a new consumer needs a new entry here, not just a new file.
 
 ## Tests
 
@@ -84,8 +115,10 @@ injected at the `callRemote`/`buildServer` seams.
 ## Publishing to npm
 
 **Live since 2026-07-04** (published by CI + cold-verified via
-`npx -y bowmark-mcp` against prod). To ship a version: **bump `version` in
-`package.json` (and the two `version` literals in `src/bridge.ts`) and
+`npx -y bowmark-mcp` against prod, back when that was this package's own
+name). To ship a version: **bump `version` in `package.json` (and the two
+`version` literals in `src/bridge.ts`, and `../node-compat/package.json`'s
+version AND its `@bowmark/mcp` pin, and `../python/pyproject.toml`) and
 merge.** The actual publish does NOT run in this monorepo's CI — this repo
 is private, and npm Trusted Publishing (OIDC) validates against
 `package.json`'s `repository.url`, which (correctly) points at the public
@@ -105,4 +138,14 @@ action.
 
 `mcp-registry/server.json` carries the matching npm `packages` entry (landed
 after the first publish per the mcp-name ordering rule), and the website
-stdio tab's Node step points at `npx bowmark-mcp`.
+stdio tab's Node step points at `npx @bowmark/mcp`.
+
+**The scoped name needs its own trusted-publisher configuration.** OIDC trust
+is per PACKAGE, not per org, and npm cannot configure a trusted publisher for
+a package that does not exist — so `@bowmark/mcp` has to be reserved by a
+manual first publish and then configured, exactly the way Phase 8 of
+`docs/plans/public-types-package.md` did for `@bowmark/web`. Until that
+happens the `npm` job here fails on auth, and it is a registry-configuration
+problem rather than a workflow one. The forwarder in `../node-compat/`
+publishes under the EXISTING `bowmark-mcp` name and keeps its existing trust
+configuration, so it is unaffected.

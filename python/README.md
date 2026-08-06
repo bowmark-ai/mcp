@@ -11,7 +11,9 @@ whose client only speaks stdio (for example browser-use's `MCPClient`). Tool
 schemas, descriptions, and results pass through verbatim — the hosted server
 stays the single source of truth; nothing is reimplemented here.
 (Node-flavored environments: the same bridge exists on npm as `bowmark-mcp` —
-`npx bowmark-mcp`, `packages/bowmark-mcp/node/` in the monorepo.)
+`npx @bowmark/mcp`, `packages/bowmark-mcp/node/` in the monorepo. The npm name is
+scoped and this one is not, deliberately: PyPI cannot be scoped and has no rename
+mechanism, so `bowmark-mcp` here is already what PEP 752 blesses.)
 
 `mcp-name: ai.bowmark/bowmark`
 
