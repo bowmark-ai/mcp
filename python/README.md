@@ -117,8 +117,9 @@ action. If the registry surface changed, also bump
 api-release republish — the registry validates ownership via the `mcp-name`
 marker above).
 
-Manual fallback (creds: 1Password item **"PyPI"**, vault
-`Christopher-Macbook-CLI`, token in the `Christopher_Bowmark_API_Key` field;
-service-account `op read` requires the vault in the path):
-`cd packages/bowmark-mcp/python && rm -rf dist && uv build &&
-UV_PUBLISH_TOKEN="$(op read 'op://Christopher-Macbook-CLI/PyPI/Christopher_Bowmark_API_Key')" uv publish`
+Manual fallback, when that workflow cannot run: `rm -rf dist && uv build && uv
+publish`, with a PyPI API token in `UV_PUBLISH_TOKEN`. The token is a maintainer
+credential held in 1Password. **This directory is mirrored to a public repo**
+(see the mirror job in the monorepo), so the item path is deliberately not
+written here — it lives beside that job, in
+`.github/workflows/release-bowmark-mcp.yml`.
