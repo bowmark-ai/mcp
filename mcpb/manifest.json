@@ -1,0 +1,70 @@
+{
+  "manifest_version": "0.3",
+  "name": "bowmark",
+  "display_name": "Bowmark",
+  "version": "0.0.0",
+  "description": "Do things on live websites: prices, availability, quotes, bookings, anything behind a form or login.",
+  "long_description": "Bowmark AI reorganizes web functionality into a typed capability library that AI agents call by writing code, instead of driving a browser page by page. An agent reads the library over HTTP or through the Bowmark MCP server, writes a short async JavaScript script against it, and Bowmark executes that script against the live websites and returns structured data. It covers the parts of the web that have no public API: search boxes, filters, quote forms, product configurators, availability lookups, checkout and booking flows, and pages behind a login.",
+  "author": {
+    "name": "Bowmark AI",
+    "url": "https://bowmark.ai"
+  },
+  "homepage": "https://bowmark.ai",
+  "documentation": "https://bowmark.ai",
+  "support": "https://bowmark.ai/support",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bowmark-ai/mcp"
+  },
+  "privacy_policies": [
+    "https://bowmark.ai/privacy"
+  ],
+  "icon": "icon.png",
+  "license": "MIT",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/server/index.js"
+      ],
+      "env": {
+        "BOWMARK_MCP_URL": "https://api.bowmark.ai/mcp/mcpb"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "get_library",
+      "description": "Check what can be done on a live website for this task. Read-only: it touches no site and changes nothing."
+    },
+    {
+      "name": "run",
+      "description": "Do the task on the live websites and return the result. This is the tool that acts."
+    },
+    {
+      "name": "register",
+      "description": "Create a free Bowmark account and return an API key, when the anonymous allowance runs out."
+    }
+  ],
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "ai-agent",
+    "web-automation",
+    "agentic-web",
+    "structured-data",
+    "typescript"
+  ],
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
+    "runtimes": {
+      "node": ">=20.0.0"
+    }
+  }
+}

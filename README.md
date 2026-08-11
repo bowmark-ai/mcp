@@ -16,6 +16,10 @@ per ecosystem:
 | Node | `npx @bowmark/mcp` (npm) | [`node/`](node/) |
 | Node, old name | `npx bowmark-mcp` — a forwarder, still works | [`node-compat/`](node-compat/) |
 
+There is a fourth way in that installs no package at all: [`mcpb/`](mcpb/) packs the Node
+bridge into a **`.mcpb` desktop extension**, a zip Claude desktop installs in one click.
+It is the same bridge with `BOWMARK_MCP_URL` preset, not a separate implementation.
+
 **The npm package is scoped and the PyPI one is not, deliberately.** npm moved to
 `@bowmark/mcp` on 2026-08-05; PyPI cannot be scoped at all (PEP 752 standardises
 hyphen-prefixed namespaces, and PyPI has no rename, alias or redirect), so
