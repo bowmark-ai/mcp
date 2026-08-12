@@ -75,11 +75,15 @@ node -e '
   fs.writeFileSync(p, JSON.stringify(m, null, 2) + "\n");
 ' "$STAGE/manifest.json" "$VERSION"
 
+# The CLI is PINNED rather than @latest. It runs in CI on every push that
+# touches this package, and a bad release of somebody else's tool should not be
+# able to fail a mirror sync or, worse, silently change what a published bundle
+# contains. Bump it deliberately.
 echo "→ validating against the MANIFEST spec"
-npx -y @anthropic-ai/mcpb@latest validate "$STAGE/manifest.json"
+npx -y @anthropic-ai/mcpb@2.1.2 validate "$STAGE/manifest.json"
 
 mkdir -p "$OUT"
-npx -y @anthropic-ai/mcpb@latest pack "$STAGE" "$OUT/bowmark.mcpb"
+npx -y @anthropic-ai/mcpb@2.1.2 pack "$STAGE" "$OUT/bowmark.mcpb"
 
 echo
 echo "✓ $OUT/bowmark.mcpb — version $VERSION"

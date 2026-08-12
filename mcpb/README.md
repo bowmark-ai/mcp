@@ -12,11 +12,19 @@ desktop installs in one click. This one wraps the published `@bowmark/mcp` stdio
 and points it at the hosted Bowmark MCP, so a desktop user gets the same three tools
 without pasting a URL into settings.
 
+**Download the current build:**
+<https://github.com/bowmark-ai/mcp/releases/latest/download/bowmark.mcpb> — then
+double-click it with Claude installed.
+
+That URL is stable and always serves the latest bundle. `release-bowmark-mcp.yml` builds
+and attaches it on every change to this package, so there is no "which copy is current"
+question and no build artifact committed to git.
+
+To build it yourself:
+
 ```bash
 bash packages/bowmark-mcp/mcpb/build.sh     # → dist/bowmark.mcpb
 ```
-
-Then double-click it with Claude installed.
 
 ## The one failure mode, and it is silent
 
