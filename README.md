@@ -68,9 +68,9 @@ refusing to serve over.
 If your host speaks streamable HTTP, skip the bridge entirely and connect to
 `https://api.bowmark.ai/mcp`.
 
-Env (both bridges): `BOWMARK_MCP_URL` (target override), `BOWMARK_API_KEY`
-(optional — lifts the anonymous per-IP daily cap; free key at
-[bowmark.ai](https://bowmark.ai)).
+Env (both bridges): `BOWMARK_API_KEY` (**required** — create one at
+[bowmark.ai/dashboard/keys](https://bowmark.ai/dashboard/keys)) and `BOWMARK_MCP_URL`
+(target override).
 
 ## 2.0.0 — the tools changed
 

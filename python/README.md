@@ -45,7 +45,7 @@ If your host speaks streamable HTTP, skip this bridge and connect directly to
 | Var | Meaning |
 |---|---|
 | `BOWMARK_MCP_URL` | Target MCP URL. Default `https://api.bowmark.ai/mcp/pypi` (the `/pypi` destination attributes the install to this bridge). Point at `http://localhost:3001/mcp` for a local Bowmark API. |
-| `BOWMARK_API_KEY` | Optional. Forwarded as `X-Bowmark-Key`; a free key (bowmark.ai dashboard) lifts the anonymous per-IP daily cap to your plan budget. |
+| `BOWMARK_API_KEY` | **Required.** Your key from https://bowmark.ai/dashboard/keys (sign up at https://bowmark.ai/sign-up). Forwarded as `X-Bowmark-Key`. Without it the bridge still starts, warns on stderr, and every call returns the sign-up steps. |
 
 ## Design notes (repo-internal)
 

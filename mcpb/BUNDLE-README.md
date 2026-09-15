@@ -22,13 +22,16 @@ account, no API key, no runtime beyond the Node that Claude already ships with.
 |---|---|
 | `get_library` | Check what can be done on a live website for this task. Read-only: it touches no site and changes nothing. |
 | `run` | Do the task on the live websites and return the result. This is the tool that acts. |
-| `register` | Create a free Bowmark account and return an API key, when the anonymous allowance runs out. |
+| `report` | Tell Bowmark what it could not do or got wrong, so the gap gets built. |
 
 ## Pricing
 
-Free to start — about 1,000 calls a month, no signup and no card. Beyond that it is
-usage-based at $5 per 1,000 calls, on one monthly invoice. No plans or tiers; a call is
-one Bowmark function your script runs.
+Needs a free Bowmark account: create an API key at https://bowmark.ai/dashboard/keys and paste it when the bundle asks. Every account gets $10 of usage free each month, no card needed. Each call is charged in
+US dollars for the resources it actually used: proxy bandwidth, browser time, captcha
+solves and paid data API requests. Only calls that work are charged, and the price comes
+back with each result. Past $10 a card is needed, and usage is billed as you go. Every
+account has a monthly spend cap, $50 by default. No plans or tiers. Rates are published
+at https://bowmark.ai/docs/pricing.
 
 ## How this bundle works
 
@@ -56,8 +59,8 @@ What that means for this bundle specifically:
 - **Sign-in.** Where a site needs a user signed in, the run pauses and returns a
   single-use link for the person to authenticate themselves on that site. Bowmark never
   asks for, receives or stores that password.
-- **No account is required** to use this bundle, and none is created unless you call
-  `register`.
+- **A Bowmark account is required.** The bundle asks for your API key at install and
+  sends it with every call; it creates no account itself.
 
 Questions, or a deletion request: **<https://bowmark.ai/support>**.
 

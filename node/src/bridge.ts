@@ -11,8 +11,8 @@
 //   BOWMARK_MCP_URL  Target MCP URL. Default https://api.bowmark.ai/mcp/npm
 //                    (the `/npm` destination attributes the install to this
 //                    bridge; point at http://localhost:3001/mcp for a local API).
-//   BOWMARK_API_KEY  Optional key, forwarded as X-Bowmark-Key. Omit for the
-//                    anonymous tier.
+//   BOWMARK_API_KEY  Required key, forwarded as X-Bowmark-Key. Bowmark requires an
+//                    account; without it every call returns the sign-up steps.
 //
 // Design note — one remote session PER REQUEST, retried once. The hosted MCP
 // is stateless and auth-free, so a fresh connection is semantically identical
@@ -32,7 +32,7 @@ export function targetUrl(env: NodeJS.ProcessEnv = process.env): string {
   return env.BOWMARK_MCP_URL?.trim() || DEFAULT_URL;
 }
 
-/** Optional API key -> X-Bowmark-Key header (the hosted MCP also accepts
+/** API key -> X-Bowmark-Key header (the hosted MCP also accepts
  * Authorization: Bearer; one header is enough). */
 export function authHeaders(
   env: NodeJS.ProcessEnv = process.env,
@@ -52,6 +52,18 @@ export function authHeaders(
  * The real host named itself on OUR stdio handshake, so relay that name on
  * every proxied request. Best-effort: `undefined` before the host has
  * initialized, and the api treats an unrecognized name the same as none. */
+/** The stderr line a keyless start prints. The bridge still STARTS without a key:
+ * an MCP host shows a crashed server as "failed" with nothing an agent can read,
+ * while a running one passes the api's refusal — sign-up steps included — straight
+ * into the agent's context. So the key is required, and its absence is a warning
+ * here and a refusal upstream rather than an exit. */
+export function missingKeyWarning(env: NodeJS.ProcessEnv = process.env): string | null {
+  return env.BOWMARK_API_KEY?.trim()
+    ? null
+    : "bowmark-mcp: BOWMARK_API_KEY is not set. Bowmark requires an account — create a key at " +
+        "https://bowmark.ai/dashboard/keys. Until then every call returns the sign-up steps.";
+}
+
 export function clientHeaders(hostName: string | undefined): Record<string, string> | undefined {
   const name = hostName?.trim();
   return name ? { "X-Bowmark-Client": name } : undefined;

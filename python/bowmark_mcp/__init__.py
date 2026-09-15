@@ -12,8 +12,8 @@ Env:
                     (the ``/pypi`` destination attributes the install to this
                     bridge; point at ``http://localhost:3001/mcp`` for a local
                     API).
-  BOWMARK_API_KEY   Optional Bowmark API key, forwarded as ``X-Bowmark-Key``.
-                    Omit for the anonymous tier.
+  BOWMARK_API_KEY   Required Bowmark API key, forwarded as ``X-Bowmark-Key``.
+                    Without it every call returns the sign-up steps.
 
 Design note — one remote session PER REQUEST, not one held for the process
 lifetime. The MCP Python SDK's ``streamablehttp_client`` is an anyio-scoped
@@ -49,10 +49,22 @@ def target_url() -> str:
 
 
 def auth_headers() -> dict[str, str] | None:
-    """Optional API key -> X-Bowmark-Key header (the hosted MCP also accepts
+    """API key -> X-Bowmark-Key header (the hosted MCP also accepts
     Authorization: Bearer; one header is enough)."""
     key = os.environ.get("BOWMARK_API_KEY", "").strip()
     return {"X-Bowmark-Key": key} if key else None
+
+
+def missing_key_warning() -> str | None:
+    """The stderr line a keyless start prints. The bridge still starts without a key:
+    a crashed stdio server shows as "failed" with nothing an agent can read, while a
+    running one passes the api's refusal and its sign-up steps into the agent's context."""
+    if os.environ.get("BOWMARK_API_KEY", "").strip():
+        return None
+    return (
+        "bowmark-mcp: BOWMARK_API_KEY is not set. Bowmark requires an account — create a key at "
+        "https://bowmark.ai/dashboard/keys. Until then every call returns the sign-up steps."
+    )
 
 
 def client_headers(host_name: str | None) -> dict[str, str] | None:
@@ -202,6 +214,9 @@ async def _serve() -> None:
 
 def main() -> None:
     # stdout belongs to the protocol; anything human goes to stderr.
+    warning = missing_key_warning()
+    if warning:
+        print(warning, file=sys.stderr)
     asyncio.run(_serve())
 
 
