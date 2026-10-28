@@ -39,7 +39,7 @@ The bundle is a thin stdio bridge. It runs `@bowmark/mcp` locally and proxies ev
 request to the hosted Bowmark MCP server at `https://api.bowmark.ai/mcp`. The tools,
 their schemas and their results pass through verbatim, so the hosted server stays the
 single source of truth. The source of the bridge is
-[bowmark-ai/mcp](https://github.com/bowmark-ai/mcp), MIT licensed.
+[bowmark-ai/mcp](https://github.com/bowmark-ai/mcp).
 
 ## Privacy Policy
 
@@ -63,9 +63,5 @@ What that means for this bundle specifically:
   sends it with every call; it creates no account itself.
 
 Questions, or a deletion request: **<https://bowmark.ai/support>**.
-
-## License
-
-MIT. See [bowmark-ai/mcp](https://github.com/bowmark-ai/mcp).
 
 © 2026 Bowmark AI

@@ -18,7 +18,6 @@
   },
   "privacy_policies": ["https://bowmark.ai/privacy"],
   "icon": "icon.png",
-  "license": "MIT",
   "server": {
     "type": "node",
     "entry_point": "server/index.js",
