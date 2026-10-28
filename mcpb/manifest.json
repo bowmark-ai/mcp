@@ -3,7 +3,7 @@
   "name": "bowmark",
   "display_name": "Bowmark",
   "version": "0.0.0",
-  "description": "Do things on live websites: prices, availability, quotes, bookings, anything behind a form or login.",
+  "description": "Web scraping and automation for AI agents: live prices, quotes, bookings, anything behind a login.",
   "long_description": "Bowmark AI reorganizes web functionality into a typed capability library that AI agents call by writing code, instead of driving a browser page by page. An agent reads the library over HTTP or through the Bowmark MCP server, writes a short async JavaScript script against it, and Bowmark executes that script against the live websites and returns structured data. It covers the parts of the web that have no public API: search boxes, filters, quote forms, product configurators, availability lookups, checkout and booking flows, and pages behind a login.",
   "author": {
     "name": "Bowmark AI",
