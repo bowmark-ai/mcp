@@ -26,7 +26,7 @@ account, no API key, no runtime beyond the Node that Claude already ships with.
 
 ## Pricing
 
-Needs a free Bowmark account: create an API key at https://bowmark.ai/dashboard/keys and paste it when the bundle asks. Every account gets $10 of usage free each month, no card needed. Each call is charged in
+Needs a free Bowmark account: create an API key at https://bowmark.ai/dashboard/keys and paste it when the bundle asks. Every account gets its first $10 of usage free, no card needed. Each call is charged in
 US dollars for the resources it actually used: proxy bandwidth, browser time, captcha
 solves and paid data API requests. Only calls that work are charged, and the price comes
 back with each result. Past $10 a card is needed, and usage is billed as you go. Every
