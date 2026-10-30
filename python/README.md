@@ -4,7 +4,8 @@ Bowmark turns the interaction-gated web into a **callable function library**.
 An agent reads the library (`get_library`), writes a short JavaScript script
 against it, and sends it to `run` — Bowmark executes it on the live sites in a
 sandbox and hands back the result. The canonical server is hosted, streamable
-HTTP, no auth required: `https://api.bowmark.ai/mcp`.
+HTTP: `https://api.bowmark.ai/mcp`. Reading the library needs no key; `run`
+needs a Bowmark account, which starts with a free $10.
 
 This package is a **thin stdio bridge** to that hosted server, for MCP hosts
 whose client only speaks stdio (for example browser-use's `MCPClient`). Tool

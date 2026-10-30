@@ -17,7 +17,8 @@ lmstudio://add_mcp?name=bowmark&config=eyJ1cmwiOiJodHRwczovL2FwaS5ib3dtYXJrLmFpL
 function library**. An agent reads the library (`get_library`), writes a short
 JavaScript script against it, and sends it to `run` — Bowmark executes it on the
 live sites in a sandbox and hands back the result. The canonical server is
-hosted, streamable HTTP, no auth required: `https://api.bowmark.ai/mcp`.
+hosted, streamable HTTP: `https://api.bowmark.ai/mcp`. Reading the
+library needs no key; `run` needs a Bowmark account, which starts with a free $10.
 
 Some MCP hosts only speak **stdio** — browser-use, and many self-built agent
 stacks. This repo holds two thin stdio bridges to the same hosted server, one
