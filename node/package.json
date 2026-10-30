@@ -13,9 +13,12 @@
   },
   "keywords": [
     "mcp",
+    "mcp-server",
     "model-context-protocol",
     "bowmark",
-    "browser-automation",
+    "web-scraping",
+    "web-data",
+    "ai-agent-tools",
     "ai-agents"
   ],
   "type": "module",

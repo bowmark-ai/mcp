@@ -5,7 +5,7 @@ description = "Bowmark MCP over stdio — a thin bridge to the hosted Bowmark MC
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Bowmark AI", email = "christopher@bowmark.ai" }]
-keywords = ["mcp", "model-context-protocol", "bowmark", "browser-automation", "ai-agents"]
+keywords = ["mcp", "mcp-server", "model-context-protocol", "bowmark", "web-scraping", "web-data", "ai-agent-tools", "ai-agents"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
