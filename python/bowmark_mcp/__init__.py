@@ -143,12 +143,19 @@ async def list_tools_impl(host: str | None = None) -> list[types.Tool]:
 
 async def call_tool_impl(
     name: str, arguments: dict[str, Any] | None, host: str | None = None
-) -> list[Any]:
+) -> list[Any] | tuple[list[Any], dict[str, Any]]:
     result = await call_remote(lambda s: s.call_tool(name, arguments or {}), host)
     # The lowlevel server wraps a raised exception as an isError result with
     # the exception text, so upstream errors round-trip with their message.
     if result.isError:
         raise RuntimeError(error_text(result, name))
+    # A hosted tool with an outputSchema (``run``) answers with
+    # structuredContent, and list_tools forwards that schema to the host, so the
+    # lowlevel server rejects any result without it ("outputSchema defined but
+    # no structured output returned"). The (content, structured) tuple is the
+    # handler shape that carries both through unchanged.
+    if result.structuredContent is not None:
+        return list(result.content), result.structuredContent
     return list(result.content)
 
 
@@ -198,7 +205,9 @@ def build_server(instructions: str | None = None) -> Server:
     async def _list_tools() -> list[types.Tool]:
         return await list_tools_impl(host_name(server))
 
-    async def _call_tool(name: str, arguments: dict[str, Any] | None) -> list[Any]:
+    async def _call_tool(
+        name: str, arguments: dict[str, Any] | None
+    ) -> list[Any] | tuple[list[Any], dict[str, Any]]:
         return await call_tool_impl(name, arguments, host_name(server))
 
     server.list_tools()(_list_tools)

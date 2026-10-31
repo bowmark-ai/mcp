@@ -1,6 +1,6 @@
 {
   "name": "bowmark-mcp",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Compatibility forwarder. The Bowmark stdio MCP bridge now ships as @bowmark/mcp; this package re-execs it so every config already in the wild keeps working.",
   "license": "UNLICENSED",
   "author": "Bowmark AI <christopher@bowmark.ai>",
@@ -27,6 +27,6 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@bowmark/mcp": "2.1.0"
+    "@bowmark/mcp": "2.1.1"
   }
 }

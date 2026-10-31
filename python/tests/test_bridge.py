@@ -47,6 +47,50 @@ def test_call_tool_passes_content_through(monkeypatch):
     assert content[0].text == '{"status":"ok"}'
 
 
+def test_call_tool_carries_structured_content(monkeypatch):
+    # run declares an outputSchema; dropping structuredContent made the
+    # lowlevel server fail every run call (2026-10-30, bridge 2.1.0).
+    async def fake_call_remote(fn, host=None):
+        return types.CallToolResult(
+            content=[types.TextContent(type="text", text='{"ok":true}')],
+            structuredContent={"ok": True, "result": 2},
+            isError=False,
+        )
+
+    monkeypatch.setattr(bowmark_mcp, "call_remote", fake_call_remote)
+    content, structured = asyncio.run(bowmark_mcp.call_tool_impl("run", {"script": "x"}))
+    assert content[0].text == '{"ok":true}'
+    assert structured == {"ok": True, "result": 2}
+
+
+def test_server_returns_structured_content_for_output_schema_tool(monkeypatch):
+    # End to end through the real lowlevel server: a tool whose schema demands
+    # structured output must come back with it, not a validation error.
+    schema = {"type": "object", "properties": {"result": {}}, "required": ["result"]}
+    tool = types.Tool(name="run", inputSchema={"type": "object"}, outputSchema=schema)
+
+    async def fake_list(host=None):
+        return [tool]
+
+    async def fake_call_remote(fn, host=None):
+        return types.CallToolResult(
+            content=[types.TextContent(type="text", text='{"result":2}')],
+            structuredContent={"result": 2},
+            isError=False,
+        )
+
+    monkeypatch.setattr(bowmark_mcp, "list_tools_impl", fake_list)
+    monkeypatch.setattr(bowmark_mcp, "call_remote", fake_call_remote)
+    server = bowmark_mcp.build_server()
+    handler = server.request_handlers[types.CallToolRequest]
+    req = types.CallToolRequest(
+        method="tools/call", params=types.CallToolRequestParams(name="run", arguments={"script": "x"})
+    )
+    out = asyncio.run(handler(req)).root
+    assert not out.isError, out.content
+    assert out.structuredContent == {"result": 2}
+
+
 def test_call_tool_raises_on_upstream_error(monkeypatch):
     async def fake_call_remote(fn, host=None):
         return _tool_result("upstream exploded", is_error=True)
