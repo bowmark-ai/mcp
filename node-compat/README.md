@@ -1,7 +1,10 @@
-# bowmark-mcp — compatibility forwarder
+# bowmark-mcp: compatibility forwarder
 
 **The bridge moved to [`@bowmark/mcp`](https://www.npmjs.com/package/@bowmark/mcp).**
 This package is the old name, kept working.
+
+Bowmark lets your AI agent use live websites: prices, quotes, bookings, anything
+behind a login. New accounts start with a free $10 at [bowmark.ai](https://bowmark.ai).
 
 ```jsonc
 // what you have: still works, prints one notice on stderr
