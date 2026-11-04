@@ -1,4 +1,7 @@
-# bowmark-mcp — the Bowmark MCP over stdio
+# Bowmark MCP: live, structured data from 750+ websites for your agent
+
+Ask for prices, listings, profiles or reviews by name (Amazon, LinkedIn, YouTube,
+Airbnb and more) and get typed results back. Every account starts with a free $10.
 
 [![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](cursor://anysphere.cursor-deeplink/mcp/install?name=bowmark&config=eyJ1cmwiOiJodHRwczovL2FwaS5ib3dtYXJrLmFpL21jcC9iYWRnZS1jdXJzb3IifQ==)
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Bowmark-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=bowmark&config=%7B%22name%22%3A%22bowmark%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fapi.bowmark.ai%2Fmcp%2Fbadge-vscode%22%7D)
@@ -7,7 +10,7 @@
 [![npm](https://img.shields.io/npm/v/%40bowmark%2Fmcp?style=flat-square&label=%40bowmark%2Fmcp)](https://www.npmjs.com/package/@bowmark/mcp)
 [![PyPI](https://img.shields.io/pypi/v/bowmark-mcp?style=flat-square)](https://pypi.org/project/bowmark-mcp/)
 
-<sub>**LM Studio** — GitHub strips a raw `lmstudio:` link, so this one is a paste, not a button. Copy it into your browser's address bar:</sub>
+<sub>**LM Studio**: GitHub strips a raw `lmstudio:` link, so this one is a paste, not a button. Copy it into your browser's address bar:</sub>
 
 ```
 lmstudio://add_mcp?name=bowmark&config=eyJ1cmwiOiJodHRwczovL2FwaS5ib3dtYXJrLmFpL21jcC9iYWRnZS1sbXN0dWRpbyJ9
@@ -15,13 +18,13 @@ lmstudio://add_mcp?name=bowmark&config=eyJ1cmwiOiJodHRwczovL2FwaS5ib3dtYXJrLmFpL
 
 [Bowmark](https://bowmark.ai) turns the interaction-gated web into a **callable
 function library**. An agent reads the library (`get_library`), writes a short
-JavaScript script against it, and sends it to `run` — Bowmark executes it on the
-live sites in a sandbox and hands back the result. The canonical server is
+JavaScript script against it, and sends it to `run`; Bowmark runs it on the live
+sites and hands back the result. The canonical server is
 hosted, streamable HTTP: `https://api.bowmark.ai/mcp`. Reading the
 library needs no key; `run` needs a Bowmark account, which starts with a free $10.
 
-Some MCP hosts only speak **stdio** — browser-use, and many self-built agent
-stacks. This repo holds two thin stdio bridges to the same hosted server, one
+Some MCP hosts only speak **stdio** (browser-use, and many self-built agent
+stacks). This repo holds two thin stdio bridges to the same hosted server, one
 per ecosystem:
 
 | Runtime | Install | Source |
