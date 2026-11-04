@@ -13,8 +13,11 @@ flows, and pages behind a login.
 
 ## Install
 
-Double-click `bowmark.mcpb` with Claude installed. There is nothing to configure — no
-account, no API key, no runtime beyond the Node that Claude already ships with.
+1. Create a free Bowmark account at https://bowmark.ai/sign-up. It starts with a free $10.
+2. Create an API key at https://bowmark.ai/dashboard/keys.
+3. Double-click `bowmark.mcpb` with Claude installed and paste the key when it asks.
+
+Nothing else to install: the bundle runs on the Node that Claude already ships with.
 
 ## What it does
 
@@ -50,7 +53,7 @@ What that means for this bundle specifically:
 - **This bundle connects to an external first-party service.** Every tool call is
   forwarded to Bowmark's hosted server at `https://api.bowmark.ai`. Nothing is computed
   locally; the local process is a relay.
-- **What is sent.** The arguments you pass to a tool — for `run`, the JavaScript script
+- **What is sent.** The arguments you pass to a tool: for `run`, the JavaScript script
   itself, and for `get_library`, your query string. Bowmark logs calls to operate and
   bill the service.
 - **Third-party websites.** A `run` script reaches the live websites it names. Those are
