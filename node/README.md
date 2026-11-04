@@ -1,9 +1,10 @@
 # @bowmark/mcp — Bowmark MCP over stdio (Node)
 
-Bowmark turns the interaction-gated web into a **callable function library**.
-An agent reads the library (`get_library`), writes a short JavaScript script
-against it, and sends it to `run` — Bowmark executes it on the live sites in a
-sandbox and hands back the result. The canonical server is hosted, streamable
+Bowmark lets your AI agent use live websites: prices, quotes, bookings,
+anything behind a login. Sites come as a **typed function library**. An agent
+reads the library (`get_library`), writes a short JavaScript script against it,
+and sends it to `run`. Bowmark runs it on the live sites and hands back the
+result. The canonical server is hosted, streamable
 HTTP: `https://api.bowmark.ai/mcp`. Reading the library needs no key; `run`
 needs a Bowmark account, which starts with a free $10.
 
@@ -63,7 +64,7 @@ If your host speaks streamable HTTP, skip this bridge and connect directly to
 
 - **One remote session per request, retried once.** The hosted MCP is
   stateless, so a fresh connection is semantically identical and its cost (one
-  initialize round-trip) is noise next to a `run` that drives real browsers — and it
+  initialize round-trip) is noise next to a `run` on live sites, and it
   sidesteps long-lived-connection failure modes without reconnect bookkeeping.
   Mirrors `packages/bowmark-mcp/python` (the PyPI bridge) exactly.
 - **The real host's name is relayed upstream.** The api tailors its operating
