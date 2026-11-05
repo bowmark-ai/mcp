@@ -1,6 +1,6 @@
 [project]
 name = "bowmark-mcp"
-version = "2.1.1"
+version = "2.1.2"
 description = "Bowmark MCP for stdio hosts: web scraping and automation for AI agents. Live prices, quotes, bookings, anything behind a login. Starts with a free $10."
 readme = "README.md"
 requires-python = ">=3.10"
