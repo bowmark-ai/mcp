@@ -23,6 +23,8 @@ sites and hands back the result. The canonical server is
 hosted, streamable HTTP: `https://api.bowmark.ai/mcp`. Reading the
 library needs no key; `run` needs a Bowmark account, which starts with a free $10.
 
+Jigs: small pages built on Bowmark and published for anyone to use. Each one runs with your own logins on the sites it lists, and your agent can search, open and publish them. Browse the store at https://bowmark.ai/jigs.
+
 Some MCP hosts only speak **stdio** (browser-use, and many self-built agent
 stacks). This repo holds two thin stdio bridges to the same hosted server, one
 per ecosystem:

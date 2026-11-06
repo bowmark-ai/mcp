@@ -4,7 +4,7 @@
   "display_name": "Bowmark",
   "version": "0.0.0",
   "description": "Web scraping and automation for AI agents: live prices, quotes, bookings, anything behind a login.",
-  "long_description": "Bowmark AI reorganizes web functionality into a typed capability library that AI agents call by writing code, instead of driving a browser page by page. An agent reads the library over HTTP or through the Bowmark MCP server, writes a short async JavaScript script against it, and Bowmark executes that script against the live websites and returns structured data. It covers the parts of the web that have no public API: search boxes, filters, quote forms, product configurators, availability lookups, checkout and booking flows, and pages behind a login.",
+  "long_description": "Bowmark AI reorganizes web functionality into a typed capability library that AI agents call by writing code, instead of driving a browser page by page. An agent reads the library over HTTP or through the Bowmark MCP server, writes a short async JavaScript script against it, and Bowmark executes that script against the live websites and returns structured data. It covers the parts of the web that have no public API: search boxes, filters, quote forms, product configurators, availability lookups, checkout and booking flows, and pages behind a login. Jigs: small pages built on Bowmark and published for anyone to use. Each one runs with your own logins on the sites it lists, and your agent can search, open and publish them. Browse the store at https://bowmark.ai/jigs.",
   "author": {
     "name": "Bowmark AI",
     "url": "https://bowmark.ai"
