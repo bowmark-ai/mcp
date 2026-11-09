@@ -1,7 +1,9 @@
-# Bowmark MCP: live, structured data from 750+ websites for your agent
+# Bowmark MCP server: give your AI agent live web data from 750+ websites
 
-Ask for prices, listings, profiles or reviews by name (Amazon, LinkedIn, YouTube,
-Airbnb and more) and get typed results back. Every account starts with a free $10.
+Bowmark is a remote MCP server that gives an LLM live, structured data from 750+ websites.
+Ask for prices, listings, profiles or reviews by name (Amazon, LinkedIn, YouTube, Airbnb and
+more) and your agent gets typed results back, from functions tested on a schedule. Connect it
+at `https://api.bowmark.ai/mcp`. Every account starts with a free $10.
 
 [![Add to Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](cursor://anysphere.cursor-deeplink/mcp/install?name=bowmark&config=eyJ1cmwiOiJodHRwczovL2FwaS5ib3dtYXJrLmFpL21jcC9iYWRnZS1jdXJzb3IifQ==)
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Bowmark-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect/mcp/install?name=bowmark&config=%7B%22name%22%3A%22bowmark%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fapi.bowmark.ai%2Fmcp%2Fbadge-vscode%22%7D)
