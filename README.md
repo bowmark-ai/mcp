@@ -27,6 +27,10 @@ library needs no key; `run` needs a Bowmark account, which starts with a free $1
 
 Jigs: small pages built on Bowmark and published for anyone to use. Each one runs with your own logins on the sites it lists, and your agent can search, open and publish them. Browse the store at https://bowmark.ai/jigs.
 
+**Try it.** Once Bowmark is connected, paste this into your agent:
+
+> Compare USPS and UPS prices to ship a 3 lb box of shoes from ZIP 94103 to ZIP 10001, and tell me which service is cheapest and what it costs right now.
+
 Some MCP hosts only speak **stdio** (browser-use, and many self-built agent
 stacks). This repo holds two thin stdio bridges to the same hosted server, one
 per ecosystem:
